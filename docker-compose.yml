@@ -1,0 +1,53 @@
+version: "3.5"
+networks:
+  frontend: 
+  backend: 
+    internal: true
+services:
+  proxy:
+    build: proxy/
+    restart: always
+    expose: 
+      - '80'
+      - '443'
+    ports: 
+      - '80'
+      - '443'
+    depends_on: 
+      - backend
+    networks: 
+      - frontend
+      - backend
+
+
+  database:
+    build: database/
+    restart: always
+    environment:
+     MYSQL_ROOT_PASSWORD: root
+     MYSQL_USERNAME: root
+     MYSQL_PASSWORD: root
+    expose:
+      - '3306'
+    ports:
+      - "3306:3306"
+    networks: 
+      - backend
+
+  backend:
+    build: backend/
+    command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    environment:
+     DB_USERNAME: root
+     DB_PASSWORD: root
+     DB_NAME: backend
+     DB_PORT: 3306
+     DB_HOST: database
+     RAILS_ENV: development
+     RAILS_MAX_THREADS: 5
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "database"
+    networks: 
+      - backend
